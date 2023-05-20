@@ -1,13 +1,12 @@
 name: Build and deploy Python app to Azure Web App
 
 env:
-  AZURE_WEBAPP_NAME: immo-ml-python-flask-app
-  PYTHON_VERSION: '3.9'
+  AZURE_WEBAPP_NAME: immo-ml-python-flask-app  # définissez ceci avec le nom de votre Azure Web App
+  PYTHON_VERSION: '3.9'              # définissez ceci avec la version de Python à utiliser
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
@@ -18,37 +17,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2.4.3
+      - uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Node.js 16.x
+        uses: actions/setup-node@v2
         with:
           node-version: '16.x'
 
       - name: Set up Python version
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Create and start virtual environment
         run: |
-          rm -rf venv
-          python -m venv venv
-          source venv/bin/activate
-
+              rm -rf venv
+              python -m venv venv
+              source venv/bin/activate
       - name: Install dependencies
         run: pip install -r requirements.txt
 
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 
       - name: Upload artifact for deployment jobs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2.2.4
         with:
           name: python-app
           path: |
             .
             !venv/
-
   deploy:
     permissions:
       contents: none
@@ -60,15 +57,10 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v2
         with:
           name: python-app
           path: .
-
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
